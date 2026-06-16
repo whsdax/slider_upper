@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.eggs/
+dist/
+*.egg
+
+# PyInstaller
+build/
+
+# IDE / editor
+.claw/
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Unrelated design doc (not part of this project)
+DESIGN.md

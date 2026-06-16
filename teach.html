@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>推杆上位机 V5.2 · 教学文档</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #f8f9fa;
+      --sidebar: #1e293b;
+      --sidebar-text: #e2e8f0;
+      --sidebar-hover: #334155;
+      --content-bg: #ffffff;
+      --text: #1e293b;
+      --subtext: #64748b;
+      --primary: #2563eb;
+      --border: #e2e8f0;
+      --code-bg: #1e293b;
+      --code-text: #e2e8f0;
+      --accent: #0ea5e9;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+    .layout { display: flex; min-height: 100vh; }
+    nav {
+      width: 260px; background: var(--sidebar); color: var(--sidebar-text);
+      position: fixed; height: 100vh; overflow-y: auto; padding: 1.5rem 0;
+    }
+    nav h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 1.25rem; margin: 1rem 0 0.5rem; color: #94a3b8; }
+    nav a {
+      display: block; padding: 0.45rem 1.25rem; color: var(--sidebar-text);
+      text-decoration: none; font-size: 0.9rem; border-left: 3px solid transparent;
+    }
+    nav a:hover { background: var(--sidebar-hover); border-left-color: var(--accent); }
+    main { margin-left: 260px; flex: 1; padding: 2rem 3rem 4rem; max-width: 960px; }
+    header.doc-header {
+      background: linear-gradient(135deg, #1e40af, #2563eb);
+      color: white; padding: 2rem; border-radius: 12px; margin-bottom: 2rem;
+    }
+    header.doc-header h1 { font-size: 1.75rem; margin-bottom: 0.5rem; }
+    header.doc-header p { opacity: 0.9; font-size: 0.95rem; }
+    section { background: var(--content-bg); border-radius: 10px; padding: 1.75rem; margin-bottom: 1.5rem; border: 1px solid var(--border); }
+    h2 { font-size: 1.4rem; color: var(--primary); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); }
+    h3 { font-size: 1.15rem; margin: 1.25rem 0 0.75rem; color: #334155; }
+    h4 { font-size: 1rem; margin: 1rem 0 0.5rem; color: #475569; }
+    p { margin-bottom: 0.75rem; }
+    ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+    li { margin-bottom: 0.35rem; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+    th, td { border: 1px solid var(--border); padding: 0.6rem 0.8rem; text-align: left; }
+    th { background: #f1f5f9; font-weight: 600; }
+    tr:nth-child(even) { background: #f8fafc; }
+    pre {
+      background: var(--code-bg); color: var(--code-text); padding: 1rem 1.25rem;
+      border-radius: 8px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 1rem 0;
+    }
+    code { font-family: "Cascadia Code", "Consolas", monospace; }
+    p code, li code { background: #f1f5f9; color: #be123c; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.88em; }
+    .kw { color: #c084fc; }
+    .str { color: #86efac; }
+    .cmt { color: #94a3b8; }
+    .num { color: #fbbf24; }
+    .mermaid { margin: 1.5rem 0; text-align: center; }
+    .tag { display: inline-block; background: #dbeafe; color: #1d4ed8; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.8rem; margin-right: 0.25rem; }
+    .warn { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 0.75rem 1rem; border-radius: 0 6px 6px 0; margin: 1rem 0; }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <nav>
+    <h2>目录</h2>
+    <a href="#part1">第一段 · 整体设计</a>
+    <a href="#part1-func">整体功能</a>
+    <a href="#part1-arch">分层架构</a>
+    <a href="#part1-why">选型理由</a>
+    <a href="#part1-flow">执行流程</a>
+    <h2>第二段 · 逐文件讲解</h2>
+    <a href="#file-pcan">PCANBasic.py</a>
+    <a href="#file-can">can.py</a>
+    <a href="#file-slider">slider_upper.py</a>
+    <a href="#file-calib">calib_v3.py</a>
+    <a href="#file-main">main.py</a>
+    <a href="#file-others">其他文件</a>
+    <a href="#protocol">CAN 协议速查</a>
+    <h2>第三段 · 运行演示</h2>
+    <a href="#demo-gui">GUI 校准</a>
+    <a href="#demo-cli">CLI 控制</a>
+    <a href="#demo-light">精简脚本</a>
+    <h2>第四段 · 拓展知识</h2>
+    <a href="#ext-syntax">语法</a>
+    <a href="#ext-lib">库</a>
+    <a href="#ext-ds">数据结构</a>
+    <a href="#ext-algo">算法</a>
+    <a href="#ext-pitfall">避坑</a>
+    <a href="#ext-more">延伸</a>
+  </nav>
+
+  <main>
+    <header class="doc-header">
+      <h1>推杆上位机 V5.2 · 教学文档</h1>
+      <p>电动推杆 CAN-FD 上位机软件 · 四段式深度解析 · 2026-06-16</p>
+    </header>
+
+    <!-- 第一段 -->
+    <section id="part1">
+      <h2 id="part1-title">第一段：代码整体设计思路与框架总述</h2>
+
+      <h3 id="part1-func">1. 整体功能</h3>
+      <table>
+        <tr><th>维度</th><th>说明</th></tr>
+        <tr><td>业务效果</td><td>通过 PCAN-USB 与 LA 系列推杆通信，实现位置移动、零点校准、力传感器标零、改设备 ID、实时状态监控</td></tr>
+        <tr><td>解决问题</td><td>推杆位置反馈有偏差需 offset 校准；工程师需要 GUI 和 CLI 两种调试方式</td></tr>
+        <tr><td>输入</td><td>用户输入（目标位置 mm、关节 ID、控制模式）+ CAN 总线反馈报文</td></tr>
+        <tr><td>输出</td><td>GUI 状态刷新 / 控制台打印 / CAN 控制报文下发到驱动器</td></tr>
+      </table>
+
+      <h3 id="part1-arch">2. 分层框架拆解</h3>
+      <div class="mermaid">
+flowchart TB
+    subgraph app [应用层]
+        SU[slider_upper.py GUI]
+        CV3[calib_v3.py]
+        MN[main.py CLI]
+    end
+    subgraph canLayer [can.py]
+        Bus[Bus]
+        Msg[Message]
+    end
+    subgraph driver [PCANBasic.py]
+        API[PCANBasic类]
+        DLL[PCANBasic.dll]
+    end
+    SU --> canLayer
+    CV3 --> canLayer
+    MN --> canLayer
+    canLayer --> driver
+    DLL --> Actuator[推杆驱动器]
+      </div>
+      <p><strong>GUI 校准执行流程：</strong>启动 → 连接 CAN → 扫描关节 ID → 后台轮询位置 → 用户输入目标 → 使能 → 读当前位置 → 计算 offset → 发送 SDO → 验证差值 &lt; 0.05mm → 失能 → 显示结果</p>
+
+      <h3 id="part1-why">3. 设计原因与选型理由</h3>
+      <ul>
+        <li><strong>本地 can.py 而非 pip install python-can</strong>：避免命名冲突，项目自带模块会覆盖标准库</li>
+        <li><strong>PCANBasic.py 官方绑定</strong>：直接调用 PCANBasic.dll，稳定支持 CAN-FD</li>
+        <li><strong>Tkinter 做 GUI</strong>：Python 内置，无额外依赖，便于 PyInstaller 打包</li>
+        <li><strong>多线程</strong>：CAN 接收与 GUI 主循环分离，<code>watch_loop</code> 放后台守护线程</li>
+        <li><strong>calib_v3 → v4 → GUI</strong>：逐步增加多次采样、标准差过滤、重试验证</li>
+      </ul>
+
+      <h3 id="part1-flow">4. 整体执行流程</h3>
+      <ol>
+        <li><code>slider_upper.spec</code> → PyInstaller 打包 <code>slider_upper.py</code> 为 exe</li>
+        <li>GUI 主流程：<code>CalibrationApp</code> → 连接 CAN → 扫描 → 用户操作</li>
+        <li>CLI 调试：<code>main.py</code> 交互命令（p/s/c/pcos/enable 等）</li>
+        <li>简易验证：<code>position_light.py</code> 使能→移动→失能</li>
+      </ol>
+    </section>
+
+    <!-- 第二段 -->
+    <section id="part2">
+      <h2>第二段：逐文件代码讲解</h2>
+
+      <h3 id="file-pcan">PCANBasic.py（PEAK 官方驱动绑定，839 行）</h3>
+      <p>厂商 SDK，结构为：<strong>类型别名 → 常量枚举 → C 结构体 → PCANBasic 类方法</strong>。</p>
+      <ul>
+        <li><code>ctypes</code> 加载 <code>PCANBasic.dll</code></li>
+        <li><code>TPCANMsgFD</code>：CAN-FD 报文结构（ID、MSGTYPE、DLC、DATA[64]）</li>
+        <li><code>PCANBasic.InitializeFD</code>：初始化 FD 通道</li>
+        <li><code>ReadFD</code> / <code>WriteFD</code>：收发 FD 报文</li>
+        <li><code>PCAN_USBBUS1 (0x51)</code>：默认 USB 通道，<code>can.py</code> 使用</li>
+        <li><code>PCAN_ERROR_QRCVEMPTY</code>：接收队列为空，<code>recv</code> 轮询时常见</li>
+      </ul>
+
+      <h3 id="file-can">can.py（自定义 CAN 抽象层，142 行）</h3>
+      <p>模仿 <code>python-can</code> 接口，提供 <code>Message</code>、<code>Bus</code>、<code>CanError</code>。</p>
+      <pre><code><span class="kw">class</span> Message:
+    <span class="cmt"># 构造发送报文：设置 DLC（CAN-FD 非线性映射）、FD+BRS 标志</span>
+    <span class="cmt"># 或从 ReadFD 结果还原：__init_msgFD</span>
+
+<span class="kw">class</span> Bus:
+    PcanHandle = PCAN_USBBUS1
+    BitrateFD = <span class="str">b'f_clock_mhz=80, nom_brp=2, ...'</span>  <span class="cmt"># 仲裁 1Mbps，数据 5Mbps</span>
+    <span class="kw">def</span> send(self, message): ...   <span class="cmt"># WriteFD</span>
+    <span class="kw">def</span> recv(self, waittime): ...  <span class="cmt"># 轮询 ReadFD 直到超时</span>
+    <span class="kw">def</span> shutdown(self): ...        <span class="cmt"># CAN_Uninitialize</span></code></pre>
+
+      <h3 id="file-slider">slider_upper.py（GUI 主程序 V5.2，859 行）</h3>
+      <p><code>CalibrationApp</code> 类核心方法：</p>
+      <table>
+        <tr><th>方法</th><th>功能</th></tr>
+        <tr><td><code>_init_can</code></td><td>连接/复用 CAN，规避 PCAN shutdown bug</td></tr>
+        <tr><td><code>_scan_devices</code></td><td>扫描在线关节 ID（仲裁 ID 低 4 位）</td></tr>
+        <tr><td><code>_start_position_watch</code></td><td>后台线程：位置轮询、热插拔、3 秒断连检测</td></tr>
+        <tr><td><code>_calibration_process</code></td><td>6 步校准：使能→清队列→offset=0→standby→采样→写 offset→验证</td></tr>
+        <tr><td><code>_move_to_position</code></td><td>闭环移动，容差 5（0.05mm），最多 15 轮</td></tr>
+        <tr><td><code>_update_status_display</code></td><td>解析 32 字节 0x480 反馈报文</td></tr>
+        <tr><td><code>_force_zero_calib</code></td><td>力传感器标零 SDO</td></tr>
+        <tr><td><code>_write_new_id</code></td><td>修改设备 ID 1~10</td></tr>
+      </table>
+      <pre><code><span class="cmt"># 校准核心公式</span>
+offset_position = target_position - mean_pos   <span class="cmt"># 补偿 = 目标 - 当前反馈</span>
+data = <span class="str">'2B012005'</span> + offset_hex + <span class="str">'0000'</span>   <span class="cmt"># SDO 写 offset</span>
+
+<span class="cmt"># 位置控制报文</span>
+move_data = <span class="str">'01'</span> + position_bytes + dur_bytes + <span class="str">'0F00'</span>  <span class="cmt"># 0x01=位置模式</span></code></pre>
+
+      <h3 id="file-calib">calib_v3.py（CLI 校准 v3，119 行）</h3>
+      <p>交互式命令行校准，流程与 GUI 类似但<strong>单次采样、无重试、无标准差过滤</strong>。</p>
+      <ol>
+        <li>输入关节 ID → 初始化 CAN</li>
+        <li>使能 → 清队列</li>
+        <li>发送 <code>2B01200500000000</code>（offset=0）</li>
+        <li>发送 <code>2B03180520000000</code>（standby 上报）</li>
+        <li>等待 <code>0x480+id</code> 反馈，读取位置</li>
+        <li>用户输入实际位置 → 计算 offset → 发送校准报文 → 失能</li>
+      </ol>
+
+      <h3 id="file-main">main.py（CLI 全功能控制，548 行）</h3>
+      <p>支持位置/速度/电流/余弦轨迹等多种控制模式，后台线程 <code>receive_data</code> 持续解析 0x180/0x480/0x580 报文。</p>
+      <p>交互命令：<code>p</code> 位置、<code>s</code> 速度、<code>c</code> 电流、<code>pcos</code> 余弦运动、<code>enable/disable</code>、<code>or/cr</code> 开关上报、<code>q</code> 退出。</p>
+
+      <h3 id="file-others">其他文件</h3>
+      <ul>
+        <li><code>calib_v4.py</code>：v3 增强版，多次采样 + 2σ 过滤 + 最多 5 次重试</li>
+        <li><code>position_light.py</code>：最简位置控制示例（使能→移动→失能）</li>
+        <li><code>slider_upper.spec</code>：PyInstaller 打包配置，入口 <code>slider_upper.py</code></li>
+      </ul>
+
+      <h3 id="protocol">CAN 协议速查表</h3>
+      <table>
+        <tr><th>仲裁 ID</th><th>方向</th><th>含义</th></tr>
+        <tr><td><code>0x200 + id</code></td><td>主机→驱动</td><td>运动控制（使能/位置/速度/电流）</td></tr>
+        <tr><td><code>0x600 + id</code></td><td>主机→驱动</td><td>SDO 配置（offset、上报频率、改 ID）</td></tr>
+        <tr><td><code>0x480 + id</code></td><td>驱动→主机</td><td>状态/位置反馈（32 或 48 字节）</td></tr>
+        <tr><td><code>0x180 + id</code></td><td>驱动→主机</td><td>状态字（故障位）</td></tr>
+        <tr><td><code>0x580 + id</code></td><td>驱动→主机</td><td>SDO 响应</td></tr>
+      </table>
+      <h4>控制报文 0x200+id 格式</h4>
+      <table>
+        <tr><th>场景</th><th>数据（hex）</th></tr>
+        <tr><td>使能</td><td><code>00000000000700</code></td></tr>
+        <tr><td>失能</td><td><code>00000000000400</code></td></tr>
+        <tr><td>位置模式</td><td><code>01</code> + 目标(2B小端) + 时长ms(2B) + <code>0F00</code></td></tr>
+        <tr><td>速度模式</td><td><code>03</code> + ...</td></tr>
+        <tr><td>电流模式</td><td><code>04</code> + ...</td></tr>
+      </table>
+      <h4>32 字节反馈报文 0x480+id 字段</h4>
+      <table>
+        <tr><th>偏移</th><th>字段</th><th>单位/说明</th></tr>
+        <tr><td>[0:2]</td><td>status</td><td>状态字</td></tr>
+        <tr><td>[2:4]</td><td>position</td><td>0.01mm，小端有符号</td></tr>
+        <tr><td>[4:6]</td><td>velocity</td><td>0.1 mm/s</td></tr>
+        <tr><td>[6:8]</td><td>torque</td><td>N</td></tr>
+        <tr><td>[8:10]</td><td>errorcode</td><td>故障码</td></tr>
+        <tr><td>[10:13]</td><td>Ia, Ib, Ic</td><td>相电流</td></tr>
+        <tr><td>[13:16]</td><td>udc, idc</td><td>母线电压/电流</td></tr>
+        <tr><td>[16:24]</td><td>Id, Iq, Id_ref, Iq_ref</td><td>×0.01 A</td></tr>
+        <tr><td>[28:30]</td><td>mos_temp, motor_temp</td><td>℃</td></tr>
+      </table>
+    </section>
+
+    <!-- 第三段 -->
+    <section id="part3">
+      <h2>第三段：代码运行完整演示</h2>
+
+      <h3 id="demo-gui">场景 A：GUI 校准（slider_upper.py）</h3>
+      <p><strong>输入：</strong>关节 ID=1，型号 LA5000，目标位置 0.00 mm</p>
+      <table>
+        <tr><th>步骤</th><th>代码</th><th>结果</th></tr>
+        <tr><td>1</td><td><code>_init_can()</code></td><td>「CAN初始化成功」</td></tr>
+        <tr><td>2</td><td><code>_scan_devices()</code></td><td>「已检测到关节: [1]」</td></tr>
+        <tr><td>3</td><td>开始校准</td><td>「[1/6] 使能设备...」</td></tr>
+        <tr><td>4</td><td>采样 10 次</td><td>例：mean_pos=523 → 「当前位置: 5.23mm」</td></tr>
+        <tr><td>5</td><td>offset=-523</td><td>发送 SDO 写 offset</td></tr>
+        <tr><td>6</td><td>验证 diff&lt;5</td><td>绿色「ID=1 校准成功 0.00mm」</td></tr>
+      </table>
+
+      <h3 id="demo-cli">场景 B：CLI 位置控制（main.py）</h3>
+      <pre><code>controlmode = p
+1234 2000    <span class="cmt"># 目标 12.34mm，时长 2000ms</span>
+
+<span class="cmt">→ is_enable(1)  发送 0x201: 00000000000700</span>
+<span class="cmt">→ positionControl(1234, 2000)  发送 01 D2 04 D0 07 0F 00</span>
+<span class="cmt">→ 等待 2s → is_enable(0)</span></code></pre>
+
+      <h3 id="demo-light">场景 C：精简脚本（position_light.py）</h3>
+      <p>输入 ID=1，位置=5000（50.00mm）→ 使能 → 发送位置指令 → 等待 1.5s → 失能 → 推杆伸出约 50mm。</p>
+    </section>
+
+    <!-- 第四段 -->
+    <section id="part4">
+      <h2>第四段：拓展知识点专项讲解</h2>
+
+      <h3 id="ext-syntax">1. 语法知识点</h3>
+      <ul>
+        <li><code>int.from_bytes(..., byteorder='little', signed=True)</code>：小端解析有符号整数，推杆位置 2 字节</li>
+        <li><code>to_bytes(2, ...).hex()</code>：整数转 hex 字符串拼接 CAN 数据</li>
+        <li><code>threading.Thread(..., daemon=True)</code>：守护线程，主程序退出时自动结束</li>
+        <li><code>tk.StringVar</code> + <code>textvariable=</code>：变量变则 Label 自动刷新</li>
+        <li><code>root.after(0, lambda: ...)</code>：从子线程安全更新 GUI</li>
+      </ul>
+
+      <h3 id="ext-lib">2. 库相关知识点</h3>
+      <table>
+        <tr><th>库</th><th>作用</th><th>本项目用法</th></tr>
+        <tr><td>ctypes</td><td>调用 C DLL</td><td>PCANBasic.py 加载 PCANBasic.dll</td></tr>
+        <tr><td>tkinter</td><td>GUI</td><td>slider_upper.py 主界面</td></tr>
+        <tr><td>numpy</td><td>数值计算</td><td>均值/标准差过滤、余弦轨迹</td></tr>
+        <tr><td>本地 can.py</td><td>CAN 抽象</td><td>替代 python-can，避免命名冲突</td></tr>
+      </table>
+
+      <h3 id="ext-ds">3. 数据结构知识点</h3>
+      <ul>
+        <li><strong>字典 current_date / status_vars</strong>：O(1) 按字段更新 UI</li>
+        <li><strong>列表 positions</strong>：采样序列，配合 numpy 统计过滤</li>
+        <li><strong>集合 detected_ids</strong>：自动去重存储扫描到的关节 ID</li>
+      </ul>
+
+      <h3 id="ext-algo">4. 算法知识点</h3>
+      <ul>
+        <li><strong>校准 offset</strong>：<code>offset = 目标 - 当前反馈</code>，一次线性补偿</li>
+        <li><strong>2σ 过滤</strong>：保留 <code>|x-mean| ≤ 2*std</code> 样本，剔除 CAN 噪声野点</li>
+        <li><strong>余弦轨迹</strong>：<code>y = A*cos(2πx) + C</code>，配合 sleep_exact 逼近 1kHz</li>
+        <li><strong>闭环移动</strong>：读位置→算误差→|diff|≥5 再发指令，最多 15 轮</li>
+      </ul>
+
+      <h3 id="ext-pitfall">5. 避坑知识点</h3>
+      <div class="warn">
+        <strong>重要：</strong>不要 pip install python-can，会与本地 can.py 冲突。
+      </div>
+      <table>
+        <tr><th>问题</th><th>说明</th><th>建议</th></tr>
+        <tr><td>PCAN shutdown bug</td><td>多次 shutdown 通道损坏</td><td>复用 bus，仅 on_closing 时 shutdown</td></tr>
+        <tr><td>import can 冲突</td><td>本地模块覆盖 pip 包</td><td>勿安装 python-can</td></tr>
+        <tr><td>单位混淆</td><td>位置 0.01mm、速度 0.1mm/s</td><td>显示时除以 100 或 10</td></tr>
+        <tr><td>校准前需使能</td><td>未使能发 SDO 可能无响应</td><td>先 0x0700 再写 offset</td></tr>
+      </table>
+
+      <h3 id="ext-more">6. 延伸拓展</h3>
+      <ul>
+        <li>架构演进：v3 单线程 → v4 重试验证 → V5.2 GUI 集成移动/标零/改 ID/热插拔</li>
+        <li>可优化：协议封装为 protocol.py；queue 解耦收发；日志模块替代 print</li>
+        <li>打包：<code>pyinstaller slider_upper.spec</code>，目标机需安装 PEAK 驱动</li>
+      </ul>
+    </section>
+  </main>
+</div>
+<script>mermaid.initialize({ startOnLoad: true, theme: 'neutral' });</script>
+</body>
+</html>

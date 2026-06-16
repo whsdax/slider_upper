@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>推杆上位机 · AI 协作新手指南</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #f8f9fa; --sidebar: #1a1f2e; --sidebar-text: #e2e8f0; --sidebar-hover: #2d3548;
+      --content-bg: #ffffff; --text: #1e293b; --primary: #7c3aed; --border: #e2e8f0;
+      --code-bg: #1e293b; --code-text: #e2e8f0; --accent: #a78bfa;
+      --good: #059669; --bad: #dc2626;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+    .layout { display: flex; min-height: 100vh; }
+    nav { width: 280px; background: var(--sidebar); color: var(--sidebar-text); position: fixed; height: 100vh; overflow-y: auto; padding: 1.5rem 0; }
+    nav h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 1.25rem; margin: 1rem 0 0.5rem; color: #94a3b8; }
+    nav a { display: block; padding: 0.45rem 1.25rem; color: var(--sidebar-text); text-decoration: none; font-size: 0.9rem; border-left: 3px solid transparent; }
+    nav a:hover { background: var(--sidebar-hover); border-left-color: var(--accent); }
+    main { margin-left: 280px; flex: 1; padding: 2rem 3rem 4rem; max-width: 980px; }
+    header.doc-header { background: linear-gradient(135deg, #5b21b6, #7c3aed); color: white; padding: 2rem; border-radius: 12px; margin-bottom: 2rem; }
+    header.doc-header h1 { font-size: 1.75rem; margin-bottom: 0.5rem; }
+    section { background: var(--content-bg); border-radius: 10px; padding: 1.75rem; margin-bottom: 1.5rem; border: 1px solid var(--border); }
+    h2 { font-size: 1.4rem; color: var(--primary); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); }
+    h3 { font-size: 1.15rem; margin: 1.25rem 0 0.75rem; color: #334155; }
+    h4 { font-size: 1rem; margin: 1rem 0 0.5rem; color: #475569; }
+    p { margin-bottom: 0.75rem; }
+    ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+    li { margin-bottom: 0.35rem; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+    th, td { border: 1px solid var(--border); padding: 0.6rem 0.8rem; text-align: left; vertical-align: top; }
+    th { background: #f1f5f9; font-weight: 600; }
+    tr:nth-child(even) { background: #f8fafc; }
+    pre { background: var(--code-bg); color: var(--code-text); padding: 1rem 1.25rem; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; line-height: 1.55; margin: 1rem 0; white-space: pre-wrap; }
+    code { font-family: "Cascadia Code", "Consolas", monospace; }
+    p code, li code, td code { background: #f1f5f9; color: #be123c; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.88em; }
+    .mermaid { margin: 1.5rem 0; text-align: center; }
+    .warn { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 0.75rem 1rem; border-radius: 0 6px 6px 0; margin: 1rem 0; }
+    .tip { background: #ecfdf5; border-left: 4px solid var(--good); padding: 0.75rem 1rem; border-radius: 0 6px 6px 0; margin: 1rem 0; }
+    .prompt-good { border-left: 4px solid var(--good); }
+    .prompt-bad { border-left: 4px solid var(--bad); }
+    .phase-card { background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+    .phase-card h4 { color: #6d28d9; margin-top: 0; }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <nav>
+    <h2>指南目录</h2>
+    <a href="#intro">开篇 · 正确预期</a>
+    <a href="#answer">核心问题解答</a>
+    <a href="#roadmap">迭代路线图</a>
+    <a href="#prompts">分阶段 Prompt 模板</a>
+    <a href="#context">上下文包清单</a>
+    <a href="#good-bad">好 vs 坏 Prompt</a>
+    <a href="#pitfalls">翻车与纠偏</a>
+    <a href="#xlsx">协议 Excel 说明</a>
+    <a href="#teach-link">与 teach.html 关系</a>
+  </nav>
+
+  <main>
+    <header class="doc-header">
+      <h1>如何用 AI 从零构建 slider_upper V5.2</h1>
+      <p>资深 AI Agent 工程师视角 · 新手对话指南 · 2026-06-16</p>
+    </header>
+
+    <section id="intro">
+      <h2>开篇：AI 协作的正确预期</h2>
+      <p>AI（如 Cursor、ChatGPT、Claude）是<strong>结对工程师</strong>，不是一键生成器。它能快速写代码、查错、重构，但<strong>无法代替你提供硬件事实和验收标准</strong>。</p>
+      <h3>本项目交给 AI 之前，你至少需要准备</h3>
+      <ul>
+        <li><strong>硬件</strong>：PEAK PCAN-USB 适配器、LA 系列推杆、已安装 PCAN 驱动</li>
+        <li><strong>协议文档</strong>：<code>KAI执行器通信32字节协议.xlsx</code>（厂商提供，仓库内不包含）</li>
+        <li><strong>设备参数</strong>：关节 ID（1~10）、推杆型号与行程（如 LA5000 = 90mm）</li>
+        <li><strong>功能清单</strong>：你要什么（校准？移动？GUI？），按优先级排序</li>
+        <li><strong>验收方式</strong>：怎样算「做完了」（例如：校准后误差 &lt; 0.05mm）</li>
+      </ul>
+      <div class="tip">
+        <strong>工程师经验：</strong>协议 xlsx 越早交给 AI 越好。没有它，AI 只能根据零散代码「猜」字节偏移，极易写出能跑但单位错误的解析逻辑。
+      </div>
+    </section>
+
+    <section id="answer">
+      <h2>核心问题解答</h2>
+      <h3>Q1：应该先搭主功能，再慢慢完善吗？</h3>
+      <p><strong>是。</strong>推荐「分层迭代」——每一层都能独立运行、在真机上验证，再叠下一层。本仓库的真实演进路径就是这样：</p>
+      <div class="mermaid">
+flowchart LR
+    P0[P0 can.py硬件层] --> P1[P1 position_light]
+    P1 --> P2[P2 calib_v3/v4]
+    P2 --> P3[P3 slider_upper GUI]
+    P3 --> P4[P4 注释与文档]
+      </div>
+      <p>不要一上来就说「帮我写个完整上位机」。那会让 AI 同时处理驱动、协议、GUI、线程，返工率极高。</p>
+
+      <h3>Q2：<code>KAI执行器通信32字节协议.xlsx</code> 需要吗？</h3>
+      <p><strong>需要，且应在 P0/P1 阶段就附上。</strong>该 Excel 是 CAN 通信的权威定义：</p>
+      <table>
+        <tr><th>Sheet</th><th>内容</th><th>对应代码</th></tr>
+        <tr><td>Sheet2</td><td>SDO 指令（0x600+id）：使能、上报、offset、改 ID 等</td><td><code>calib_v3.py</code>、<code>slider_upper._calibration_process</code></td></tr>
+        <tr><td>Sheet3</td><td>TxPDO4 反馈（0x480+id）32 字节字段定义</td><td><code>slider_upper._update_status_display</code></td></tr>
+        <tr><td>Sheet4</td><td>故障码等级与错误字</td><td>状态面板 errorcode 解读</td></tr>
+      </table>
+      <p>仓库<strong>不上传</strong>该 xlsx（厂商文档），但你在与 AI 对话时应作为附件或截图提供。</p>
+    </section>
+
+    <section id="roadmap">
+      <h2>推荐迭代路线图</h2>
+      <table>
+        <tr><th>阶段</th><th>产物文件</th><th>目标</th><th>硬件验收</th></tr>
+        <tr><td>P0</td><td><code>PCANBasic.py</code> + <code>can.py</code></td><td>CAN-FD 能收发</td><td>PCAN 视图或脚本收到任意报文</td></tr>
+        <tr><td>P1</td><td><code>position_light.py</code></td><td>使能→移动→失能</td><td>推杆按输入长度伸出</td></tr>
+        <tr><td>P2</td><td><code>calib_v3.py</code> → <code>calib_v4.py</code></td><td>位置 offset 校准</td><td>校准后反馈位置接近真实值</td></tr>
+        <tr><td>P3</td><td><code>slider_upper.py</code></td><td>GUI + 状态监控</td><td>连接、校准、移动、读状态均正常</td></tr>
+        <tr><td>P4</td><td>注释、<code>teach.html</code>、<code>slider_upper.spec</code></td><td>可维护、可打包交付</td><td>他人能读懂、能打出 exe</td></tr>
+      </table>
+      <div class="warn">
+        <strong>原则：</strong>未通过当前阶段验收，不要进入下一阶段。否则 bug 会层层叠加，AI 也难以定位根因。
+      </div>
+    </section>
+
+    <section id="prompts">
+      <h2>分阶段 Prompt 模板（可复制）</h2>
+      <p>每个阶段包含：你对 AI 说的话、AI 应交付什么、你如何验收。</p>
+
+      <div class="phase-card">
+        <h4>P0 — CAN 硬件层</h4>
+        <p><strong>你对 AI 说：</strong></p>
+        <pre>我有一块 PEAK PCAN-USB，推杆用 CAN-FD 通信。
+请基于官方 PCANBasic.py，写一个本地 can.py：
+- 提供 Message、Bus、CanError，接口模仿 python-can
+- 默认 PCAN_USBBUS1，波特率仲裁 1Mbps、数据 5Mbps
+- 重要：项目内 import can 指导入本地文件，不要 pip install python-can
+请只交付 can.py，并给一段测试收发示例。</pre>
+        <p><strong>AI 应交付：</strong><code>can.py</code> + 初始化/发送/接收示例</p>
+        <p><strong>你验收：</strong><code>bus = can.Bus()</code> 不报错；能 <code>send</code> 且 <code>recv</code> 不抛异常</p>
+      </div>
+
+      <div class="phase-card">
+        <h4>P1 — 最小位置控制</h4>
+        <p><strong>你对 AI 说（附上 xlsx）：</strong></p>
+        <pre>附件是 KAI 执行器 32 字节通信协议。
+先不要写 GUI。写一个 position_light.py：
+1. 用户输入关节 ID
+2. 使能：仲裁 ID 0x200+id，数据 00000000000700
+3. 位置模式：0x01 + 目标位置 int16 小端 + 时长 ms + 0F00
+4. 等待后失能 00000000000400
+单位：位置 0.01mm。CAN-FD 帧。</pre>
+        <p><strong>AI 应交付：</strong><code>position_light.py</code></p>
+        <p><strong>你验收：</strong>输入 ID 和位置后，推杆实际伸出对应长度</p>
+      </div>
+
+      <div class="phase-card">
+        <h4>P2 — CLI 位置校准</h4>
+        <p><strong>你对 AI 说（附上 xlsx Sheet2/3）：</strong></p>
+        <pre>实现 calib_v3.py 命令行校准，流程：
+1. 使能
+2. SDO 0x600+id 写 offset=0：2B01200500000000
+3. 发 standby 开启上报：2B03180520000000
+4. 读 0x480+id 反馈，解析 [2:4] 为位置 int16 小端
+5. 用户输入实际位置（0.01mm），计算 offset = 实际 - 反馈
+6. SDO 写 offset：2B012005 + offset_hex + 0000
+7. 失能
+先做 v3 单次采样；通过后再做 v4 加多次采样和重试。</pre>
+        <p><strong>AI 应交付：</strong><code>calib_v3.py</code>，后续 <code>calib_v4.py</code></p>
+        <p><strong>你验收：</strong>校准后读回位置与用户输入一致（误差 &lt; 0.05mm）</p>
+      </div>
+
+      <div class="phase-card">
+        <h4>P3 — GUI 上位机</h4>
+        <p><strong>你对 AI 说：</strong></p>
+        <pre>用 Tkinter 写 slider_upper.py 推杆上位机 V5.2：
+- 连接 PCAN、扫描关节 ID 1~10
+- 校准：复用 calib 六步流程，目标位置 mm，容差 0.05mm
+- 移动：闭环到目标，行程按型号 LA5000/2000/400 限制
+- 状态面板：按 xlsx Sheet3 解析 0x480 的 32 字节
+- CAN 放后台线程，GUI 用 root.after 更新
+- 注意 PCAN shutdown 有 bug，断开时尽量复用 bus</pre>
+        <p><strong>AI 应交付：</strong><code>slider_upper.py</code></p>
+        <p><strong>你验收：</strong>连接、校准、移动、状态刷新、改 ID、力传感器标零均可操作</p>
+      </div>
+
+      <div class="phase-card">
+        <h4>P4 — 文档与交付</h4>
+        <p><strong>你对 AI 说：</strong></p>
+        <pre>为 can.py、calib_v3.py、slider_upper.py、PCANBasic.py 加中文注释；
+写 teach.html 讲解代码结构；
+写 slider_upper.spec 用 PyInstaller 打包；
+不要改业务逻辑。</pre>
+        <p><strong>AI 应交付：</strong>注释源码 + <code>teach.html</code> + <code>slider_upper.spec</code></p>
+        <p><strong>你验收：</strong>新人读 teach.html 能看懂；<code>pyinstaller slider_upper.spec</code> 能出 exe</p>
+      </div>
+    </section>
+
+    <section id="context">
+      <h2>每次对话应提供的「上下文包」</h2>
+      <table>
+        <tr><th>优先级</th><th>材料</th><th>说明</th></tr>
+        <tr><td>必附</td><td><code>KAI执行器通信32字节协议.xlsx</code></td><td>或导出 Sheet2~3 为 Markdown / 截图</td></tr>
+        <tr><td>必说</td><td>关节 ID、推杆型号、行程</td><td>如 ID=1，LA5000，0~90mm</td></tr>
+        <tr><td>建议附</td><td>当前相关 .py 文件</td><td>让 AI 在现有代码上改，而非重写</td></tr>
+        <tr><td>建议附</td><td>一次成功报文的 hex</td><td>例：<code>msg.data.hex()</code> 输出，便于对照偏移</td></tr>
+        <tr><td>建议附</td><td>报错全文 + 操作步骤</td><td>「点连接后报 CAN 初始化失败」比「不能用」有效</td></tr>
+        <tr><td>可选</td><td>PCAN-View 抓包</td><td>仲裁 ID、数据长度、时序</td></tr>
+      </table>
+    </section>
+
+    <section id="good-bad">
+      <h2>好的 Prompt vs 坏的 Prompt</h2>
+      <h3 class="prompt-bad" style="padding-left:1rem;">坏的例子</h3>
+      <pre>帮我写个推杆上位机，要能控制电机。</pre>
+      <p>问题：无协议、无硬件、无验收、无分阶段 → AI 只能幻觉协议。</p>
+
+      <h3 class="prompt-bad" style="padding-left:1rem;">坏的例子</h3>
+      <pre>pip install python-can，然后写 CAN 通信。</pre>
+      <p>问题：与本项目本地 <code>can.py</code> 冲突，导入错模块。</p>
+
+      <h3 class="prompt-good" style="padding-left:1rem;">好的例子</h3>
+      <pre>附件 xlsx Sheet3 定义了 TxPDO4（COB-ID 0x480+NodeID）。
+请用 int16 小端解析 byte[2:3] 为 DriveResp_PosReal，
+推杆单位 0.00001 m（即 0.01mm 整数）。
+先写函数 parse_position(msg.data)，再集成到 GUI。
+验收：与 PCAN 抓包数值一致。</pre>
+
+      <h3 class="prompt-good" style="padding-left:1rem;">好的例子</h3>
+      <pre>calib_v3 校准后误差仍大于 1mm。请对照 xlsx：
+- SDO 写 offset 索引是否为 0x2005 子索引 0x01
+- 写之前是否已发 standby 2B03180520000000
+- 接收超时是否因为没清 recv 队列
+在现有 calib_v3.py 上最小改动修复，不要重写。</pre>
+    </section>
+
+    <section id="pitfalls">
+      <h2>常见翻车与纠偏话术</h2>
+      <table>
+        <tr><th>现象</th><th>可能原因</th><th>你对 AI 说</th></tr>
+        <tr><td><code>import can</code> 行为不对</td><td>装了 pip 的 python-can</td><td>「卸载 python-can，只用项目目录下的 can.py」</td></tr>
+        <tr><td>位置数值差 100 倍</td><td>单位搞错（mm vs 0.01mm）</td><td>「对照 xlsx：推杆位置单位 0.00001m，列出每个字段换算表」</td></tr>
+        <tr><td>收不到 0x480 报文</td><td>未开上报 / ID 偏移错</td><td>「先发 2B03180520000000，仲裁 ID 用 0x480+device_id」</td></tr>
+        <tr><td>第二次连接失败</td><td>PCAN shutdown bug</td><td>「断开时不调用 shutdown，复用 bus 引用，见 slider_upper _init_can」</td></tr>
+        <tr><td>GUI 点连接卡死</td><td>主线程阻塞 recv</td><td>「CAN 操作放 threading.Thread，UI 更新用 root.after(0, ...)」</td></tr>
+        <tr><td>校准成功但移动偏</td><td>校准与移动单位不一致</td><td>「统一 target_position = int(mm * 100)，全项目搜索换算」</td></tr>
+      </table>
+    </section>
+
+    <section id="xlsx">
+      <h2>协议 Excel 使用说明（仓库不包含原文）</h2>
+      <p>文件名：<code>KAI执行器通信32字节协议.xlsx</code>（请向设备厂商索取，本地自备）</p>
+
+      <h3>Sheet3 核心字段（TxPDO4，0x480 + NodeID，32 字节）</h3>
+      <p>与 <code>slider_upper._update_status_display</code> 一致，完整定义以 xlsx 为准：</p>
+      <table>
+        <tr><th>Byte</th><th>字段</th><th>类型</th><th>推杆单位</th></tr>
+        <tr><td>0-1</td><td>DriveResp_Status</td><td>uint16</td><td>状态字</td></tr>
+        <tr><td>2-3</td><td>DriveResp_PosReal</td><td>int16</td><td>0.00001 m（代码中 ×100 为 0.01mm 整数）</td></tr>
+        <tr><td>4-5</td><td>DriveResp_VelReal</td><td>int16</td><td>0.0001 m/s（代码中 ×0.1 显示 mm/s）</td></tr>
+        <tr><td>6-7</td><td>DriveResp_TorqReal</td><td>int16</td><td>1 N</td></tr>
+        <tr><td>8-9</td><td>DriveResp_Errorcode</td><td>uint16</td><td>故障码，见 Sheet4</td></tr>
+        <tr><td>10-12</td><td>Ia, Ib, Ic</td><td>int8×3</td><td>1 A</td></tr>
+        <tr><td>13</td><td>Udc</td><td>int8</td><td>1 V</td></tr>
+        <tr><td>14-15</td><td>Idc</td><td>int16</td><td>0.01 A</td></tr>
+        <tr><td>16-23</td><td>Id, Iq, IdRef, IqRef</td><td>int16×4</td><td>0.01 A</td></tr>
+        <tr><td>26-27</td><td>TorqRef</td><td>int16</td><td>1 N</td></tr>
+        <tr><td>28-29</td><td>MOS温度, 电机温度</td><td>int8×2</td><td>℃</td></tr>
+        <tr><td>30-31</td><td>DataIndex</td><td>uint16</td><td>数据索引</td></tr>
+      </table>
+
+      <h3>Sheet2 常用 SDO（0x600 + NodeID）</h3>
+      <table>
+        <tr><th>功能</th><th>数据 hex（示例）</th></tr>
+        <tr><td>offset 清零</td><td><code>2B01200500000000</code></td></tr>
+        <tr><td>开启上报 standby</td><td><code>2B03180520000000</code></td></tr>
+        <tr><td>写 offset</td><td><code>2B012005</code> + offset(2B小端) + <code>0000</code></td></tr>
+        <tr><td>改设备 ID</td><td><code>2F012001</code> + new_id(1B) + <code>000000</code></td></tr>
+      </table>
+
+      <h3>控制帧（0x200 + NodeID）</h3>
+      <table>
+        <tr><th>功能</th><th>数据 hex</th></tr>
+        <tr><td>使能</td><td><code>00000000000700</code></td></tr>
+        <tr><td>失能</td><td><code>00000000000400</code></td></tr>
+        <tr><td>位置模式</td><td><code>01</code> + pos(2B) + duration_ms(2B) + <code>0F00</code></td></tr>
+      </table>
+    </section>
+
+    <section id="teach-link">
+      <h2>与 teach.html 的关系</h2>
+      <div class="mermaid">
+flowchart LR
+    AIguide[AI-teach.html] -->|指导如何对话| Code[写出代码]
+    Code -->|指导如何阅读| Teach[teach.html]
+      </div>
+      <ul>
+        <li><strong>AI-teach.html</strong>（本文）：新手如何用 AI <em>做出</em> 项目 — 迭代顺序、Prompt、上下文</li>
+        <li><strong>teach.html</strong>：项目 <em>写好后</em> 如何读懂 — 架构、协议、逐文件讲解</li>
+      </ul>
+      <p>建议学习路径：先读本文 → 按阶段与 AI 协作 → 代码成型后打开 <a href="teach.html">teach.html</a> 深入理解。</p>
+    </section>
+  </main>
+</div>
+<script>mermaid.initialize({ startOnLoad: true, theme: 'neutral' });</script>
+</body>
+</html>
